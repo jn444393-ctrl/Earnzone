@@ -58,7 +58,7 @@ const TASKS=[
 {id:5,t:'Share EarnZone',d:'Share the app with a friend',c:150,cat:'Other',m:1,kind:'share'}];
 const QS=[['Which device do you use most?','Phone','Laptop','Tablet'],['How often do you shop online?','Daily','Weekly','Rarely'],['How was this demo?','Good','Okay','Needs work']];
 const REWARDS=[10,25,50,100].map(r=>({r,c:r*RATE}));
-const CATS=['All','Daily','Surveys','Offers','Videos','Other'];
+const CATS=['All','Daily','Games','Surveys','Offers','Videos','Other'];
 /* ---- STORAGE (local demo only; a real app verifies coins server-side) ---- */
 const K='earnzone_demo_v1';let db={users:[],sid:null};
 try{db=JSON.parse(localStorage.getItem(K))||db}catch(e){}
@@ -129,6 +129,25 @@ function doTask(id){const t=TASKS.find(x=>x.id===id),u=me();
 function chkS(){$('cl').disabled=document.querySelectorAll('#mb input:checked').length<QS.length}
 function shareIt(id){const d={title:'EarnZone',text:'Try the EarnZone demo app',url:location.href.split('#')[0]};(navigator.share?navigator.share(d):Promise.reject()).then(()=>{closeM();finish(id)},()=>toast('Sharing did not complete. No coins added.'))}
 function resetDemo(){if(confirm('Delete all demo data on this device?')){try{localStorage.removeItem(K)}catch(e){}location.reload()}}
+
+function gameCap(){const u=me(),t=today();if(u.gd!==t){u.gd=t;u.gc=0}return 100-u.gc}
+function gameWin(n,label){const u=me(),r=Math.min(n,gameCap());if(r<=0){toast('Daily game limit reached. Come back tomorrow.');return 0}u.gc+=r;u.coins+=r;u.earned+=r;tx(u,'Earned',r,label);note(u,'You earned '+r+' coins.');save();render();toast('+'+r+' coins!');return r}
+function vGames(){return `<h1>Tasks</h1><div class="chips">${CATS.map(c=>`<span class="chip ${c===cat?'on':''}" onclick="cat='${c}';render()">${c}</span>`).join('')}</div><p class="mut" style="margin-bottom:10px">Daily game limit left: <b>${gameCap()}</b> coins</p>
+<div class="card row"><div><b>🪙 Tap Rush</b><br><small>Tap the coin for 20 seconds · up to 20 coins</small></div><button class="btn sm" onclick="playTap()">Play</button></div>
+<div class="card row"><div><b>🧠 Memory Match</b><br><small>Match all 6 pairs · win 30 coins</small></div><button class="btn sm" onclick="playMem()">Play</button></div>`}
+function playTap(){clearInterval(tm);
+ $('mb').innerHTML=`<h2>🪙 Tap Rush</h2><p class="mut">Tap the coin as many times as you can in 20 seconds. 5 taps = 1 coin (max 20).</p><div class="row"><b id="gs">Score: 0</b><b id="gt">20s</b></div><div id="ga" style="position:relative;height:250px;background:var(--bg);border-radius:14px;margin-top:8px;overflow:hidden"><button id="gc" aria-label="coin" style="position:absolute;width:56px;height:56px;border-radius:50%;border:0;background:var(--acc);font-size:26px;display:none">🪙</button></div><button class="btn" id="gb">Start</button>`;
+ $('md').classList.add('on');let sc=0,left=20;const c=$('gc'),a=$('ga');
+ const mv=()=>{c.style.left=Math.random()*(a.clientWidth-56)+'px';c.style.top=Math.random()*(a.clientHeight-56)+'px'};
+ c.onclick=()=>{sc++;$('gs').textContent='Score: '+sc;mv()};
+ $('gb').onclick=()=>{$('gb').style.display='none';c.style.display='block';mv();tm=setInterval(()=>{left--;$('gt').textContent=left+'s';if(left<=0){clearInterval(tm);c.style.display='none';const r=gameWin(Math.min(Math.floor(sc/5),20),'Tap Rush reward');$('gb').style.display='block';$('gb').textContent='Play again';$('gs').textContent='Score: '+sc+' · +'+r+' coins'}},1000)}}
+function playMem(){clearInterval(tm);const E=['🍎','🚀','🎯','🔔','🎁','⭐'],c=[...E,...E].sort(()=>Math.random()-.5);let open=[],found=0,lock=false,mv=0;
+ $('mb').innerHTML=`<h2>🧠 Memory Match</h2><p class="mut">Find all 6 pairs. Win = 30 coins.</p><div id="mg" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${c.map(()=>`<button class="qa" style="height:64px;font-size:26px">?</button>`).join('')}</div><p class="mut" id="mm">Moves: 0</p><button class="btn" id="gb" style="display:none" onclick="playMem()">Play again</button>`;
+ $('md').classList.add('on');
+ [...document.querySelectorAll('#mg button')].forEach((b,i)=>b.onclick=()=>{if(lock||b.dataset.f||open.includes(b))return;b.textContent=c[i];open.push(b);
+  if(open.length===2){mv++;$('mm').textContent='Moves: '+mv;const[x,y]=open;
+   if(x.textContent===y.textContent){x.dataset.f=y.dataset.f=1;open=[];found++;if(found===6){const r=gameWin(30,'Memory Match reward');$('mm').textContent='You won in '+mv+' moves! +'+r+' coins';$('gb').style.display='block'}}
+   else{lock=true;setTimeout(()=>{x.textContent=y.textContent='?';open=[];lock=false},700)}}})}
 /* ---- VIEWS ---- */
 const taskCard=t=>{const u=me(),dn=u.done[t.id]===(t.daily?today():'once');
  return `<div class="card row"><div><b>${t.t}</b><br><small>${t.d} · ~${t.m} min</small><br><span class="tag">+${t.c} coins</span></div><button class="btn sm" ${dn?'disabled':''} onclick="doTask(${t.id})">${dn?'Done':'Start'}</button></div>`};
@@ -136,10 +155,10 @@ const txRow=x=>`<div class="row" style="padding:8px 0;border-bottom:1px solid va
 function vHome(){const u=me(),dn=u.done[1]===today();
  return `<div class="row" style="margin-bottom:14px"><div class="row" style="justify-content:flex-start"><div class="av">${esc(u.name[0].toUpperCase())}</div><h1>Hello, ${esc(u.name.split(' ')[0])} 👋</h1></div><button class="link" onclick="openSub('notes')" aria-label="Notifications">🔔</button></div>
  <div class="bal"><small style="color:#cfd0ff">Total coins</small><div class="big">${u.coins.toLocaleString()}</div><div>Reward value ≈ ${rs(u.coins)} <small style="color:#cfd0ff">(demo rate)</small></div><button class="btn alt sm" style="margin-top:12px" onclick="go('wallet')">View wallet</button></div>
- <div class="grid"><div class="qa" onclick="go('tasks')"><b>⚡</b>Earn</div><div class="qa" onclick="go('tasks')"><b>🎯</b>Tasks</div><div class="qa" onclick="go('rewards')"><b>🎁</b>Rewards</div><div class="qa" onclick="openSub('wd')"><b>💸</b>Withdraw</div></div>
+ <div class="grid"><div class="qa" onclick="cat='Games';go('tasks')"><b>🎮</b>Games</div><div class="qa" onclick="go('tasks')"><b>🎯</b>Tasks</div><div class="qa" onclick="go('rewards')"><b>🎁</b>Rewards</div><div class="qa" onclick="openSub('wd')"><b>💸</b>Withdraw</div></div>
  <div class="card row"><div><b>Daily check-in</b><br><small>Claim 50 coins once a day</small></div><button class="btn alt sm" ${dn?'disabled':''} onclick="doTask(1)">${dn?'Claimed':'Claim 50'}</button></div>
  <h2>Available tasks</h2>${TASKS.slice(1,4).map(taskCard).join('')}`}
-function vTasks(){const l=TASKS.filter(t=>cat==='All'||t.cat===cat);
+function vTasks(){if(cat==='Games')return vGames();const l=TASKS.filter(t=>cat==='All'||t.cat===cat);
  return `<h1>Tasks</h1><p class="mut" style="margin-bottom:10px">Demo tasks. Rewards are not real money.</p><div class="chips">${CATS.map(c=>`<span class="chip ${c===cat?'on':''}" onclick="cat='${c}';render()">${c}</span>`).join('')}</div>${l.length?l.map(taskCard).join(''):'<div class="card mut">No tasks available right now.</div>'}`}
 function vWallet(){const u=me(),w=u.wd.filter(x=>x.st==='Pending').reduce((a,b)=>a+b.amt*RATE,0),wd=u.wd.reduce((a,b)=>a+(b.st==='Rejected'?0:b.amt*RATE),0);
  return `<h1>Wallet</h1><p class="mut" style="margin-bottom:10px">${RATE} coins = ₹1 is a configurable demo value until a real rewards system is connected.</p>
@@ -147,12 +166,12 @@ function vWallet(){const u=me(),w=u.wd.filter(x=>x.st==='Pending').reduce((a,b)=
  <button class="btn" onclick="openSub('wd')">Withdraw rewards</button><h2 style="margin-top:16px">Transaction history</h2><div class="card">${u.tx.length?u.tx.map(txRow).join(''):'<span class="mut">No transactions yet.</span>'}</div>`}
 function vWd(){const u=me();
  return `<button class="link" onclick="sub=null;render()">← Back</button><h1>Withdraw rewards</h1>
- ${lastWd&&u.wd.find(w=>w.id===lastWd)?`<div class="card" style="border-color:var(--ok)"><b>✅ Request submitted</b><br>Status: <b class="st-Pending">Pending</b> · ₹${u.wd.find(w=>w.id===lastWd).amt}<br><small>Prototype: payouts are not active yet.</small></div>`:''}<div class="card"><small>Available balance: <b>${u.coins} coins (${rs(u.coins)})</b> · Minimum: ₹${MIN_RS}</small><br><br>
+ ${lastWd&&u.wd.find(w=>w.id===lastWd)?`<div class="card" style="border-color:var(--ok)"><b>✅ Request submitted</b><br>Status: <b class="st-Pending">Pending</b> · ₹${u.wd.find(w=>w.id===lastWd).amt}<br><small>Early preview: payouts are not active yet.</small></div>`:''}<div class="card"><small>Available balance: <b>${u.coins} coins (${rs(u.coins)})</b> · Minimum: ₹${MIN_RS}</small><br><br>
  <label>Method</label><select onchange="wdm=this.value;render()">${['UPI','Bank Transfer','Gift Card'].map(m=>`<option ${m===wdm?'selected':''}>${m}</option>`).join('')}</select>
  <label>Amount (₹)</label><input id="wa" type="number" inputmode="decimal" min="${MIN_RS}" placeholder="${MIN_RS}">
  ${wdm!=='Gift Card'?'<label>Account holder name</label><input id="wn" autocomplete="off">':''}<label>${wdm==='UPI'?'UPI ID':wdm==='Bank Transfer'?'Account number':'Email for gift card'}</label><input id="wp" autocomplete="off" ${wdm==='Bank Transfer'?'inputmode="numeric"':''} placeholder="${wdm==='UPI'?'name@bank':''}">${wdm==='Bank Transfer'?'<label>IFSC code</label><input id="wi" maxlength="11" autocomplete="off" placeholder="SBIN0001234" style="text-transform:uppercase">':''}<small class="mut">Demo: use sample details only. Full account numbers are not saved.</small><div class="err" id="err"></div>
  <button class="btn" onclick="doWd()">Submit withdrawal request</button></div>
- <h2>Your requests</h2>${u.wd.length?u.wd.map(w=>`<div class="card row"><div><b>₹${w.amt} · ${w.method}</b><br><small>${esc(w.details||'')}</small><br><small>${new Date(w.at).toLocaleDateString()} · <span class="st-${w.st}">${w.st}</span></small></div>${w.st==='Completed'?'':`<button class="btn ghost sm" onclick="advance(${w.id})">Advance (demo)</button>`}</div>`).join(''):'<div class="card mut">No withdrawal requests yet.</div>'}<p class="mut" style="text-align:center;margin-top:14px;font-size:12px">Prototype version · payouts are not active yet</p>`}
+ <h2>Your requests</h2>${u.wd.length?u.wd.map(w=>`<div class="card row"><div><b>₹${w.amt} · ${w.method}</b><br><small>${esc(w.details||'')}</small><br><small>${new Date(w.at).toLocaleDateString()} · <span class="st-${w.st}">${w.st}</span></small></div>${w.st==='Completed'?'':`<button class="btn ghost sm" onclick="advance(${w.id})">Advance (demo)</button>`}</div>`).join(''):'<div class="card mut">No withdrawal requests yet.</div>'}<p class="mut" style="text-align:center;margin-top:14px;font-size:12px">Early preview · payouts are not active yet</p>`}
 function vRewards(){const u=me();
  return `<h1>Rewards</h1><p class="mut" style="margin-bottom:10px">Redemption is simulated in demo mode.</p><div class="g2">${REWARDS.map(x=>`<div class="card"><h1>₹${x.r}</h1><small>${x.c.toLocaleString()} coins</small><br><br><button class="btn sm ${u.coins<x.c?'ghost':''}" onclick="redeem(${x.r})">${u.coins<x.c?'Not enough coins':'Redeem'}</button></div>`).join('')}</div>`}
 function vProfile(){const u=me(),m=(i,t,f)=>`<div class="card row" style="cursor:pointer;margin-bottom:8px" onclick="${f}"><span>${i} ${t}</span><span>›</span></div>`;
