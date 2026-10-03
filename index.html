@@ -104,9 +104,14 @@ function finish(id){const u=me(),t=TASKS.find(x=>x.id===id),key=t.daily?today():
 function redeem(r){const u=me(),x=REWARDS.find(y=>y.r===r);
  if(u.coins<x.c)return toast("You don't have enough coins.");
  load(()=>{u.coins-=x.c;tx(u,'Withdrawal',-x.c,'₹'+r+' reward (simulated)','Completed');note(u,'₹'+r+' reward redeemed in demo mode.');save();render();toast('Reward redeemed in demo mode.')},900)}
-function doWd(){const u=me(),a=parseFloat($('wa').value),d=$('wp').value.trim();
- if(!(a>=MIN_RS)||a*RATE>u.coins||d.length<4||(wdm==='UPI'&&!/^[\w.\-]+@[\w]+$/.test(d)))return setErr('Please enter valid withdrawal details.');
- load(()=>{u.coins-=a*RATE;u.wd.unshift({id:Date.now(),amt:a,method:wdm,details:d,st:'Pending',at:new Date().toISOString()});tx(u,'Withdrawal',-a*RATE,'Demo withdrawal via '+wdm,'Pending');note(u,'Your withdrawal request is pending.');save();render();toast('Withdrawal request created in demo mode.')},900)}
+function doWd(){const u=me(),a=parseFloat($('wa').value),d=$('wp').value.trim(),nm=$('wn')?$('wn').value.trim():'',ifc=$('wi')?$('wi').value.trim().toUpperCase():'';
+ let ok=a>=MIN_RS&&a*RATE<=u.coins;
+ if(wdm==='UPI')ok=ok&&/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(d)&&nm.length>=2;
+ else if(wdm==='Bank Transfer')ok=ok&&/^\d{9,18}$/.test(d)&&/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifc)&&nm.length>=2;
+ else ok=ok&&/^\S+@\S+\.\S+$/.test(d);
+ if(!ok)return setErr('Please enter valid withdrawal details.');
+ const det=wdm==='Bank Transfer'?nm+' · A/c ****'+d.slice(-4)+' · '+ifc:wdm==='UPI'?nm+' · '+d:d;
+ load(()=>{u.coins-=a*RATE;u.wd.unshift({id:Date.now(),amt:a,method:wdm,details:det,st:'Pending',at:new Date().toISOString()});tx(u,'Withdrawal',-a*RATE,'Demo withdrawal via '+wdm,'Pending');note(u,'Your withdrawal request is pending.');save();render();toast('Withdrawal request created in demo mode.')},900)}
 function advance(id){const u=me(),w=u.wd.find(x=>x.id===id),n={Pending:'Approved',Approved:'Completed'}[w.st];if(!n)return;w.st=n;save();render()}
 function editName(){const n=prompt('Full name',me().name);if(n&&n.trim().length>1){me().name=n.trim();save();render()}}
 
@@ -145,9 +150,9 @@ function vWd(){const u=me();
  <div class="card"><small>Available balance: <b>${u.coins} coins (${rs(u.coins)})</b> · Minimum: ₹${MIN_RS}</small><br><br>
  <label>Method</label><select onchange="wdm=this.value;render()">${['UPI','Bank Transfer','Gift Card'].map(m=>`<option ${m===wdm?'selected':''}>${m}</option>`).join('')}</select>
  <label>Amount (₹)</label><input id="wa" type="number" inputmode="decimal" min="${MIN_RS}" placeholder="${MIN_RS}">
- <label>${wdm==='UPI'?'UPI ID':wdm==='Bank Transfer'?'Account details':'Email for gift card'}</label><input id="wp" placeholder="${wdm==='UPI'?'name@bank':''}"><div class="err" id="err"></div>
+ ${wdm!=='Gift Card'?'<label>Account holder name</label><input id="wn" autocomplete="off">':''}<label>${wdm==='UPI'?'UPI ID':wdm==='Bank Transfer'?'Account number':'Email for gift card'}</label><input id="wp" autocomplete="off" ${wdm==='Bank Transfer'?'inputmode="numeric"':''} placeholder="${wdm==='UPI'?'name@bank':''}">${wdm==='Bank Transfer'?'<label>IFSC code</label><input id="wi" maxlength="11" autocomplete="off" placeholder="SBIN0001234" style="text-transform:uppercase">':''}<small class="mut">Demo: use sample details only. Full account numbers are not saved.</small><div class="err" id="err"></div>
  <button class="btn" onclick="doWd()">Create demo withdrawal request</button></div>
- <h2>Your requests</h2>${u.wd.length?u.wd.map(w=>`<div class="card row"><div><b>₹${w.amt} · ${w.method}</b><br><small>${new Date(w.at).toLocaleDateString()} · <span class="st-${w.st}">${w.st}</span></small></div>${w.st==='Completed'?'':`<button class="btn ghost sm" onclick="advance(${w.id})">Advance (demo)</button>`}</div>`).join(''):'<div class="card mut">No withdrawal requests yet.</div>'}`}
+ <h2>Your requests</h2>${u.wd.length?u.wd.map(w=>`<div class="card row"><div><b>₹${w.amt} · ${w.method}</b><br><small>${esc(w.details||'')}</small><br><small>${new Date(w.at).toLocaleDateString()} · <span class="st-${w.st}">${w.st}</span></small></div>${w.st==='Completed'?'':`<button class="btn ghost sm" onclick="advance(${w.id})">Advance (demo)</button>`}</div>`).join(''):'<div class="card mut">No withdrawal requests yet.</div>'}`}
 function vRewards(){const u=me();
  return `<h1>Rewards</h1><p class="mut" style="margin-bottom:10px">Redemption is simulated in demo mode.</p><div class="g2">${REWARDS.map(x=>`<div class="card"><h1>₹${x.r}</h1><small>${x.c.toLocaleString()} coins</small><br><br><button class="btn sm ${u.coins<x.c?'ghost':''}" onclick="redeem(${x.r})">${u.coins<x.c?'Not enough coins':'Redeem'}</button></div>`).join('')}</div>`}
 function vProfile(){const u=me(),m=(i,t,f)=>`<div class="card row" style="cursor:pointer;margin-bottom:8px" onclick="${f}"><span>${i} ${t}</span><span>›</span></div>`;
