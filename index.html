@@ -111,11 +111,11 @@ function doWd(){const u=me(),a=parseFloat($('wa').value),d=$('wp').value.trim(),
  else ok=ok&&/^\S+@\S+\.\S+$/.test(d);
  if(!ok)return setErr('Please enter valid withdrawal details.');
  const det=wdm==='Bank Transfer'?nm+' · A/c ****'+d.slice(-4)+' · '+ifc:wdm==='UPI'?nm+' · '+d:d;
- load(()=>{u.coins-=a*RATE;u.wd.unshift({id:Date.now(),amt:a,method:wdm,details:det,st:'Pending',at:new Date().toISOString()});tx(u,'Withdrawal',-a*RATE,'Demo withdrawal via '+wdm,'Pending');note(u,'Your withdrawal request is pending.');save();render();toast('Withdrawal request created in demo mode.')},900)}
+ load(()=>{u.coins-=a*RATE;u.wd.unshift({id:Date.now(),amt:a,method:wdm,details:det,st:'Pending',at:new Date().toISOString()});tx(u,'Withdrawal',-a*RATE,'Demo withdrawal via '+wdm,'Pending');note(u,'Your withdrawal request is pending.');lastWd=u.wd[0].id;save();render();window.scrollTo(0,0);document.querySelector('main').scrollTop=0;toast('Withdrawal request created in demo mode.')},900)}
 function advance(id){const u=me(),w=u.wd.find(x=>x.id===id),n={Pending:'Approved',Approved:'Completed'}[w.st];if(!n)return;w.st=n;save();render()}
 function editName(){const n=prompt('Full name',me().name);if(n&&n.trim().length>1){me().name=n.trim();save();render()}}
 
-let tm=null;
+let tm=null,lastWd=null;
 function closeM(){clearInterval(tm);$('md').classList.remove('on')}
 function doTask(id){const t=TASKS.find(x=>x.id===id),u=me();
  if(u.done[id]===(t.daily?today():'once'))return toast(t.daily?'Already claimed today.':'Task already completed.');
@@ -147,11 +147,11 @@ function vWallet(){const u=me(),w=u.wd.filter(x=>x.st==='Pending').reduce((a,b)=
  <button class="btn" onclick="open('wd')">Withdraw rewards</button><h2 style="margin-top:16px">Transaction history</h2><div class="card">${u.tx.length?u.tx.map(txRow).join(''):'<span class="mut">No transactions yet.</span>'}</div>`}
 function vWd(){const u=me();
  return `<button class="link" onclick="sub=null;render()">← Back</button><h1>Withdraw rewards</h1><div class="demo" style="border-radius:8px;margin:8px 0">DEMO MODE: no money is transferred</div>
- <div class="card"><small>Available balance: <b>${u.coins} coins (${rs(u.coins)})</b> · Minimum: ₹${MIN_RS}</small><br><br>
+ ${lastWd&&u.wd.find(w=>w.id===lastWd)?`<div class="card" style="border-color:var(--ok)"><b>✅ Request submitted</b><br>Status: <b class="st-Pending">Pending</b> · ₹${u.wd.find(w=>w.id===lastWd).amt}<br><small>Demo mode: no money is sent.</small></div>`:''}<div class="card"><small>Available balance: <b>${u.coins} coins (${rs(u.coins)})</b> · Minimum: ₹${MIN_RS}</small><br><br>
  <label>Method</label><select onchange="wdm=this.value;render()">${['UPI','Bank Transfer','Gift Card'].map(m=>`<option ${m===wdm?'selected':''}>${m}</option>`).join('')}</select>
  <label>Amount (₹)</label><input id="wa" type="number" inputmode="decimal" min="${MIN_RS}" placeholder="${MIN_RS}">
  ${wdm!=='Gift Card'?'<label>Account holder name</label><input id="wn" autocomplete="off">':''}<label>${wdm==='UPI'?'UPI ID':wdm==='Bank Transfer'?'Account number':'Email for gift card'}</label><input id="wp" autocomplete="off" ${wdm==='Bank Transfer'?'inputmode="numeric"':''} placeholder="${wdm==='UPI'?'name@bank':''}">${wdm==='Bank Transfer'?'<label>IFSC code</label><input id="wi" maxlength="11" autocomplete="off" placeholder="SBIN0001234" style="text-transform:uppercase">':''}<small class="mut">Demo: use sample details only. Full account numbers are not saved.</small><div class="err" id="err"></div>
- <button class="btn" onclick="doWd()">Create demo withdrawal request</button></div>
+ <button class="btn" onclick="doWd()">Submit withdrawal request</button></div>
  <h2>Your requests</h2>${u.wd.length?u.wd.map(w=>`<div class="card row"><div><b>₹${w.amt} · ${w.method}</b><br><small>${esc(w.details||'')}</small><br><small>${new Date(w.at).toLocaleDateString()} · <span class="st-${w.st}">${w.st}</span></small></div>${w.st==='Completed'?'':`<button class="btn ghost sm" onclick="advance(${w.id})">Advance (demo)</button>`}</div>`).join(''):'<div class="card mut">No withdrawal requests yet.</div>'}`}
 function vRewards(){const u=me();
  return `<h1>Rewards</h1><p class="mut" style="margin-bottom:10px">Redemption is simulated in demo mode.</p><div class="g2">${REWARDS.map(x=>`<div class="card"><h1>₹${x.r}</h1><small>${x.c.toLocaleString()} coins</small><br><br><button class="btn sm ${u.coins<x.c?'ghost':''}" onclick="redeem(${x.r})">${u.coins<x.c?'Not enough coins':'Redeem'}</button></div>`).join('')}</div>`}
