@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EarnZone (Demo)</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#2b2d8f"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f4fb;--card:#fff;--ink:#1d1b3a;--mut:#6b6a85;--pri:#2b2d8f;--acc:#f5b82e;--ok:#1f9d63;--bad:#d64545;--ln:#e6e4f2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13122b;--card:#1e1d3f;--ink:#f1f0ff;--mut:#a3a2c4;--pri:#8e91ff;--ln:#2f2e57}}
+:root[data-theme="dark"]{--bg:#13122b;--card:#1e1d3f;--ink:#f1f0ff;--mut:#a3a2c4;--pri:#8e91ff;--ln:#2f2e57}
+*{box-sizing:border-box;margin:0}html,body{height:100%}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;justify-content:center}
+#app{width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;position:relative}
+main{flex:1;overflow-y:auto;padding:16px 16px 24px}
+button,input,select{font:inherit;color:inherit}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:12px;padding:12px 16px;font-weight:700;width:100%;cursor:pointer}
+.btn.sm{width:auto;padding:8px 14px;font-size:14px}.btn.alt{background:var(--acc);color:#1d1b3a}.btn.ghost{background:transparent;color:var(--pri);border:1px solid var(--ln)}
+.btn:disabled{opacity:.5}
+input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--ln);background:var(--card);margin:4px 0 10px}
+label{font-size:13px;color:var(--mut);font-weight:600}
+h1{font-size:24px;font-weight:800}h2{font-size:18px;font-weight:800;margin:6px 0 10px}small,.mut{color:var(--mut);font-size:13px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bal{background:var(--pri);color:#fff;border-radius:20px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+.bal .big{font-size:38px;font-weight:800;color:var(--acc)}.bal:after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;border:18px solid rgba(245,184,46,.25)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.qa{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:10px 4px;text-align:center;font-size:12px;font-weight:600;cursor:pointer}.qa b{display:block;font-size:22px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px}.chip{padding:7px 14px;border-radius:99px;border:1px solid var(--ln);background:var(--card);white-space:nowrap;cursor:pointer;font-size:14px}.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px;background:rgba(245,184,46,.25)}
+.st-Pending{color:#b7791f}.st-Approved,.st-Completed{color:var(--ok)}.st-Rejected{color:var(--bad)}
+nav{display:flex;border-top:1px solid var(--ln);background:var(--card);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:none;border:0;padding:8px 0;font-size:11px;color:var(--mut);font-weight:600;cursor:pointer}nav button b{display:block;font-size:20px}nav button.on{color:var(--pri)}
+.demo{background:var(--acc);color:#1d1b3a;font-size:12px;font-weight:700;text-align:center;padding:4px}
+#off{display:none;background:var(--bad);color:#fff;text-align:center;font-size:13px;padding:6px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:#1d1b3a;color:#fff;padding:10px 16px;border-radius:12px;opacity:0;transition:.25s;pointer-events:none;z-index:9;font-size:14px;max-width:90%}#toast.on{opacity:1;transform:translate(-50%,0)}
+#ld{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;z-index:8}#ld.on{display:flex}
+.sp{width:38px;height:38px;border:4px solid var(--ln);border-top-color:var(--acc);border-radius:50%;animation:r 0.8s linear infinite}@keyframes r{to{transform:rotate(360deg)}}
+.splash{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--pri);color:#fff;text-align:center}
+.logo{width:84px;height:84px;border-radius:26px;background:var(--acc);color:#1d1b3a;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:800;animation:pop .6s}@keyframes pop{from{transform:scale(.5);opacity:0}}
+.err{color:var(--bad);font-size:13px;min-height:18px;margin-bottom:6px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--acc);color:#1d1b3a;font-weight:800;display:flex;align-items:center;justify-content:center}
+.link{color:var(--pri);font-weight:700;cursor:pointer;background:none;border:0;padding:6px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="app"><div id="off">Please check your internet connection.</div><div id="root"></div></div>
+<div id="toast"></div><div id="ld"><div class="sp"></div></div>
+<script>
+/* ---- CONFIG (demo values: change when a real rewards system is connected) ---- */
+const RATE=100, MIN_RS=10, SUPPORT='support@example.com';
+const TASKS=[
+{id:1,t:'Daily Check-in',d:'Claim your daily bonus',c:50,cat:'Daily',m:1,daily:1},
+{id:2,t:'Watch Demo',d:'Watch a short demo clip',c:100,cat:'Videos',m:2},
+{id:3,t:'Complete Survey',d:'Answer 5 demo questions',c:250,cat:'Surveys',m:5},
+{id:4,t:'Visit Partner',d:'Open a demo partner page',c:75,cat:'Offers',m:1},
+{id:5,t:'Share EarnZone',d:'Tell a friend (demo)',c:150,cat:'Other',m:1}];
+const REWARDS=[10,25,50,100].map(r=>({r,c:r*RATE}));
+const CATS=['All','Daily','Surveys','Offers','Videos','Other'];
+/* ---- STORAGE (local demo only; a real app verifies coins server-side) ---- */
+const K='earnzone_demo_v1';let db={users:[],sid:null};
+try{db=JSON.parse(localStorage.getItem(K))||db}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}};
+const me=()=>db.users.find(u=>u.id===db.sid);
+const today=()=>new Date().toISOString().slice(0,10);
+const rs=c=>'₹'+(c/RATE).toFixed(2);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=i=>document.getElementById(i);
+async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2300)}
+function load(fn,ms=700){$('ld').classList.add('on');setTimeout(()=>{$('ld').classList.remove('on');fn()},ms)}
+function tx(u,type,amt,desc,st='Completed'){u.tx.unshift({type,amt,desc,st,at:new Date().toISOString()})}
+function note(u,m){u.notes.unshift({m,at:new Date().toISOString()})}
+addEventListener('offline',()=>$('off').style.display='block');addEventListener('online',()=>$('off').style.display='none');
+if(!navigator.onLine)$('off').style.display='block';
+/* ---- STATE ---- */
+let scr='splash',tab='home',sub=null,cat='All',authv='login',wdm='UPI';
+function go(t){tab=t;sub=null;render()}function open(s){sub=s;render()}
+function setErr(m){const e=$('err');if(e)e.textContent=m}
+/* ---- AUTH ---- */
+async function doReg(){
+ const v=i=>$(i).value.trim(),n=v('rn'),p=v('rp'),e=v('re').toLowerCase(),pw=$('rw').value,c=$('rc').value;
+ if(n.length<2)return setErr('Enter your full name.');
+ if(!/^\d{10}$/.test(p))return setErr('Enter a 10-digit mobile number.');
+ if(!/^\S+@\S+\.\S+$/.test(e))return setErr('Enter a valid email.');
+ if(pw.length<8)return setErr('Password must be at least 8 characters.');
+ if(pw!==c)return setErr('Passwords do not match.');
+ if(db.users.some(u=>u.email===e||u.phone===p))return setErr('An account with this email or mobile already exists.');
+ const h=await hash(e+pw);
+ load(()=>{const u={id:'EZ'+Date.now().toString().slice(-7),name:n,phone:p,email:e,pw:h,coins:500,earned:500,done:{},tx:[],wd:[],notes:[],createdAt:new Date().toISOString()};
+  tx(u,'Bonus',500,'Welcome bonus (demo)');note(u,'Daily bonus is available.');db.users.push(u);db.sid=u.id;save();scr='app';tab='home';render()},900)}
+async function doLogin(){
+ const id=$('li').value.trim().toLowerCase(),pw=$('lw').value;
+ if(!id||!pw)return setErr('Invalid email/mobile or password.');
+ const u=db.users.find(x=>x.email===id||x.phone===id),h=u&&await hash(u.email+pw);
+ load(()=>{if(!u||u.pw!==h)return setErr('Invalid email/mobile or password.');db.sid=u.id;save();scr='app';tab='home';render()},700)}
+function logout(){db.sid=null;save();scr='auth';authv='login';render()}
+/* ---- ACTIONS ---- */
+function doTask(id){const u=me(),t=TASKS.find(x=>x.id===id),key=t.daily?today():'once';
+ if(u.done[id]===key)return toast(t.daily?'Already claimed today.':'Task already completed.');
+ load(()=>{u.done[id]=key;u.coins+=t.c;u.earned+=t.c;tx(u,t.daily?'Bonus':'Earned',t.c,t.t);note(u,'You earned '+t.c+' coins.');save();render();toast('Task completed! +'+t.c+' coins')},600)}
+function redeem(r){const u=me(),x=REWARDS.find(y=>y.r===r);
+ if(u.coins<x.c)return toast("You don't have enough coins.");
+ load(()=>{u.coins-=x.c;tx(u,'Withdrawal',-x.c,'₹'+r+' reward (simulated)','Completed');note(u,'₹'+r+' reward redeemed in demo mode.');save();render();toast('Reward redeemed in demo mode.')},900)}
+function doWd(){const u=me(),a=parseFloat($('wa').value),d=$('wp').value.trim();
+ if(!(a>=MIN_RS)||a*RATE>u.coins||d.length<4||(wdm==='UPI'&&!/^[\w.\-]+@[\w]+$/.test(d)))return setErr('Please enter valid withdrawal details.');
+ load(()=>{u.coins-=a*RATE;u.wd.unshift({id:Date.now(),amt:a,method:wdm,details:d,st:'Pending',at:new Date().toISOString()});tx(u,'Withdrawal',-a*RATE,'Demo withdrawal via '+wdm,'Pending');note(u,'Your withdrawal request is pending.');save();render();toast('Withdrawal request created in demo mode.')},900)}
+function advance(id){const u=me(),w=u.wd.find(x=>x.id===id),n={Pending:'Approved',Approved:'Completed'}[w.st];if(!n)return;w.st=n;save();render()}
+function editName(){const n=prompt('Full name',me().name);if(n&&n.trim().length>1){me().name=n.trim();save();render()}}
+/* ---- VIEWS ---- */
+const taskCard=t=>{const u=me(),dn=u.done[t.id]===(t.daily?today():'once');
+ return `<div class="card row"><div><b>${t.t}</b><br><small>${t.d} · ~${t.m} min</small><br><span class="tag">+${t.c} coins</span></div><button class="btn sm" ${dn?'disabled':''} onclick="doTask(${t.id})">${dn?'Done':'Complete'}</button></div>`};
+const txRow=x=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--ln)"><div><b>${esc(x.desc)}</b><br><small>${x.type} · ${new Date(x.at).toLocaleDateString()} · <span class="st-${x.st}">${x.st}</span></small></div><b style="color:${x.amt>0?'var(--ok)':'var(--bad)'}">${x.amt>0?'+':''}${x.amt}</b></div>`;
+function vHome(){const u=me(),dn=u.done[1]===today();
+ return `<div class="row" style="margin-bottom:14px"><div class="row" style="justify-content:flex-start"><div class="av">${esc(u.name[0].toUpperCase())}</div><h1>Hello, ${esc(u.name.split(' ')[0])} 👋</h1></div><button class="link" onclick="open('notes')" aria-label="Notifications">🔔</button></div>
+ <div class="bal"><small style="color:#cfd0ff">Total coins</small><div class="big">${u.coins.toLocaleString()}</div><div>Reward value ≈ ${rs(u.coins)} <small style="color:#cfd0ff">(demo rate)</small></div><button class="btn alt sm" style="margin-top:12px" onclick="go('wallet')">View wallet</button></div>
+ <div class="grid"><div class="qa" onclick="go('tasks')"><b>⚡</b>Earn</div><div class="qa" onclick="go('tasks')"><b>🎯</b>Tasks</div><div class="qa" onclick="go('rewards')"><b>🎁</b>Rewards</div><div class="qa" onclick="open('wd')"><b>💸</b>Withdraw</div></div>
+ <div class="card row"><div><b>Daily check-in</b><br><small>Claim 50 coins once a day</small></div><button class="btn alt sm" ${dn?'disabled':''} onclick="doTask(1)">${dn?'Claimed':'Claim 50'}</button></div>
+ <h2>Available tasks</h2>${TASKS.slice(1,4).map(taskCard).join('')}`}
+function vTasks(){const l=TASKS.filter(t=>cat==='All'||t.cat===cat);
+ return `<h1>Tasks</h1><p class="mut" style="margin-bottom:10px">Demo tasks. Rewards are not real money.</p><div class="chips">${CATS.map(c=>`<span class="chip ${c===cat?'on':''}" onclick="cat='${c}';render()">${c}</span>`).join('')}</div>${l.length?l.map(taskCard).join(''):'<div class="card mut">No tasks available right now.</div>'}`}
+function vWallet(){const u=me(),w=u.wd.filter(x=>x.st==='Pending').reduce((a,b)=>a+b.amt*RATE,0),wd=u.wd.reduce((a,b)=>a+(b.st==='Rejected'?0:b.amt*RATE),0);
+ return `<h1>Wallet</h1><p class="mut" style="margin-bottom:10px">${RATE} coins = ₹1 is a configurable demo value until a real rewards system is connected.</p>
+ <div class="g2"><div class="card"><small>Current coins</small><h1>${u.coins}</h1></div><div class="card"><small>Total earned</small><h1>${u.earned}</h1></div><div class="card"><small>Total withdrawn</small><h1>${wd}</h1></div><div class="card"><small>Pending rewards</small><h1>${w}</h1></div></div>
+ <button class="btn" onclick="open('wd')">Withdraw rewards</button><h2 style="margin-top:16px">Transaction history</h2><div class="card">${u.tx.length?u.tx.map(txRow).join(''):'<span class="mut">No transactions yet.</span>'}</div>`}
+function vWd(){const u=me();
+ return `<button class="link" onclick="sub=null;render()">← Back</button><h1>Withdraw rewards</h1><div class="demo" style="border-radius:8px;margin:8px 0">DEMO MODE: no money is transferred</div>
+ <div class="card"><small>Available balance: <b>${u.coins} coins (${rs(u.coins)})</b> · Minimum: ₹${MIN_RS}</small><br><br>
+ <label>Method</label><select onchange="wdm=this.value;render()">${['UPI','Bank Transfer','Gift Card'].map(m=>`<option ${m===wdm?'selected':''}>${m}</option>`).join('')}</select>
+ <label>Amount (₹)</label><input id="wa" type="number" inputmode="decimal" min="${MIN_RS}" placeholder="${MIN_RS}">
+ <label>${wdm==='UPI'?'UPI ID':wdm==='Bank Transfer'?'Account details':'Email for gift card'}</label><input id="wp" placeholder="${wdm==='UPI'?'name@bank':''}"><div class="err" id="err"></div>
+ <button class="btn" onclick="doWd()">Create demo withdrawal request</button></div>
+ <h2>Your requests</h2>${u.wd.length?u.wd.map(w=>`<div class="card row"><div><b>₹${w.amt} · ${w.method}</b><br><small>${new Date(w.at).toLocaleDateString()} · <span class="st-${w.st}">${w.st}</span></small></div>${w.st==='Completed'?'':`<button class="btn ghost sm" onclick="advance(${w.id})">Advance (demo)</button>`}</div>`).join(''):'<div class="card mut">No withdrawal requests yet.</div>'}`}
+function vRewards(){const u=me();
+ return `<h1>Rewards</h1><p class="mut" style="margin-bottom:10px">Redemption is simulated in demo mode.</p><div class="g2">${REWARDS.map(x=>`<div class="card"><h1>₹${x.r}</h1><small>${x.c.toLocaleString()} coins</small><br><br><button class="btn sm ${u.coins<x.c?'ghost':''}" onclick="redeem(${x.r})">${u.coins<x.c?'Not enough coins':'Redeem'}</button></div>`).join('')}</div>`}
+function vProfile(){const u=me(),m=(i,t,f)=>`<div class="card row" style="cursor:pointer;margin-bottom:8px" onclick="${f}"><span>${i} ${t}</span><span>›</span></div>`;
+ return `<div class="card" style="text-align:center"><div class="av" style="margin:0 auto 8px;width:64px;height:64px;font-size:28px">${esc(u.name[0].toUpperCase())}</div><h2>${esc(u.name)}</h2><small>${esc(u.email)}<br>+91 ${esc(u.phone)}<br>User ID: ${u.id}</small></div>
+ ${m('✏️','Edit profile','editName()')}${m('💰','Wallet',"go('wallet')")}${m('🧾','Transaction history',"open('tx')")}${m('🔔','Notifications',"open('notes')")}${m('❓','Help &amp; support',"open('help')")}${m('📄','Terms, privacy &amp; reward policy',"open('legal')")}${m('🚪','Logout','logout()')}`}
+function vNotes(){const u=me();return back()+`<h1>Notifications</h1>${u.notes.length?u.notes.map(n=>`<div class="card">${esc(n.m)}<br><small>${new Date(n.at).toLocaleString()}</small></div>`).join(''):'<div class="card mut">No notifications yet.</div>'}`}
+const back=()=>`<button class="link" onclick="sub=null;render()">← Back</button>`;
+function vTx(){return back()+`<h1>Transaction history</h1><div class="card">${me().tx.length?me().tx.map(txRow).join(''):'<span class="mut">No transactions yet.</span>'}</div>`}
+function vHelp(){const f=[['How do I earn coins?','Complete tasks and daily check-ins on the Tasks screen. In this demo, all tasks are simulated.'],['How do I withdraw?','Open Withdraw, pick a method, enter an amount and details. In demo mode, only a request is created.'],['What is the minimum withdrawal?','₹'+MIN_RS+' (configurable).'],['Why is my withdrawal pending?','Requests stay pending until reviewed. In a real version, a server would review them.'],['How can I contact support?','Email '+SUPPORT+'.']];
+ return back()+`<h1>Help &amp; support</h1>${f.map(x=>`<div class="card"><b>${x[0]}</b><br><small>${x[1]}</small></div>`).join('')}<a class="btn" style="display:block;text-align:center;text-decoration:none" href="mailto:${SUPPORT}">Contact support</a>`}
+function vLegal(){return back()+`<h1>Legal</h1><div class="card"><h2>Terms &amp; Conditions</h2><small>EarnZone is a demo. Features, task availability and rewards depend on the real services connected later. No income is guaranteed.</small></div><div class="card"><h2>Privacy Policy</h2><small>Demo data stays on this device. A real version must store data securely, hash passwords on a server, and explain what it collects.</small></div><div class="card"><h2>Reward Policy</h2><small>Coins have no cash value in demo mode. Reward availability, payout options and conversion rates depend on the actual integrations used.</small></div>`}
+/* ---- RENDER ---- */
+function render(){const R=$('root');
+ if(scr==='splash'){R.innerHTML=`<div class="splash"><div class="logo">E</div><h1 style="font-size:32px">EarnZone</h1><div>Earn • Complete • Reward</div><div class="sp"></div></div>`;return}
+ if(scr==='auth'){const L=authv==='login';
+  R.innerHTML=`<div class="demo">DEMO MODE</div><main><div style="text-align:center;margin:18px 0"><div class="logo" style="margin:0 auto 8px;width:60px;height:60px;font-size:30px">E</div><h1>EarnZone</h1><small>Earn • Complete • Reward</small></div><div class="card">`+(L?
+  `<label>Email or mobile number</label><input id="li" autocomplete="username"><label>Password</label><input id="lw" type="password" autocomplete="current-password"><div class="err" id="err"></div><button class="btn" onclick="doLogin()">Login</button><button class="link" onclick="toast('Password reset needs a backend. Not available in demo.')">Forgot password</button><button class="link" onclick="authv='reg';render()">Create new account</button>`:
+  `<label>Full name</label><input id="rn"><label>Mobile number</label><input id="rp" inputmode="numeric" maxlength="10"><label>Email</label><input id="re" type="email"><label>Password (8+ characters)</label><input id="rw" type="password"><label>Confirm password</label><input id="rc" type="password"><div class="err" id="err"></div><button class="btn" onclick="doReg()">Create account</button><button class="link" onclick="authv='login';render()">I already have an account</button>`)+`</div></main>`;return}
+ const m={home:vHome,tasks:vTasks,wallet:vWallet,rewards:vRewards,profile:vProfile},s={wd:vWd,notes:vNotes,tx:vTx,help:vHelp,legal:vLegal};
+ const nav=[['home','🏠','Home'],['tasks','🎯','Tasks'],['wallet','💰','Wallet'],['rewards','🎁','Rewards'],['profile','👤','Profile']];
+ R.innerHTML=`<div class="demo">DEMO MODE · no real money</div><main>${(sub?s[sub]:m[tab])()}</main><nav>${nav.map(n=>`<button class="${n[0]===tab&&!sub?'on':''}" onclick="go('${n[0]}')"><b>${n[1]}</b>${n[2]}</button>`).join('')}</nav>`;
+ R.style.cssText='display:flex;flex-direction:column;height:100%';
+}
+$('root').style.height='100%';
+render();
+setTimeout(()=>{scr=me()?'app':'auth';$('root').removeAttribute('style');$('root').style.height='100%';render()},1700);
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+</script></body></html>
