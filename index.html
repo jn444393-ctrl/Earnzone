@@ -77,7 +77,7 @@ addEventListener('offline',()=>$('off').style.display='block');addEventListener(
 if(!navigator.onLine)$('off').style.display='block';
 /* ---- STATE ---- */
 let scr='splash',tab='home',sub=null,cat='All',authv='login',wdm='UPI';
-function go(t){tab=t;sub=null;render()}function open(s){sub=s;render()}
+function go(t){tab=t;sub=null;render()}function openSub(s){sub=s;render()}
 function setErr(m){const e=$('err');if(e)e.textContent=m}
 /* ---- AUTH ---- */
 async function doReg(){
@@ -134,9 +134,9 @@ const taskCard=t=>{const u=me(),dn=u.done[t.id]===(t.daily?today():'once');
  return `<div class="card row"><div><b>${t.t}</b><br><small>${t.d} · ~${t.m} min</small><br><span class="tag">+${t.c} coins</span></div><button class="btn sm" ${dn?'disabled':''} onclick="doTask(${t.id})">${dn?'Done':'Start'}</button></div>`};
 const txRow=x=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--ln)"><div><b>${esc(x.desc)}</b><br><small>${x.type} · ${new Date(x.at).toLocaleDateString()} · <span class="st-${x.st}">${x.st}</span></small></div><b style="color:${x.amt>0?'var(--ok)':'var(--bad)'}">${x.amt>0?'+':''}${x.amt}</b></div>`;
 function vHome(){const u=me(),dn=u.done[1]===today();
- return `<div class="row" style="margin-bottom:14px"><div class="row" style="justify-content:flex-start"><div class="av">${esc(u.name[0].toUpperCase())}</div><h1>Hello, ${esc(u.name.split(' ')[0])} 👋</h1></div><button class="link" onclick="open('notes')" aria-label="Notifications">🔔</button></div>
+ return `<div class="row" style="margin-bottom:14px"><div class="row" style="justify-content:flex-start"><div class="av">${esc(u.name[0].toUpperCase())}</div><h1>Hello, ${esc(u.name.split(' ')[0])} 👋</h1></div><button class="link" onclick="openSub('notes')" aria-label="Notifications">🔔</button></div>
  <div class="bal"><small style="color:#cfd0ff">Total coins</small><div class="big">${u.coins.toLocaleString()}</div><div>Reward value ≈ ${rs(u.coins)} <small style="color:#cfd0ff">(demo rate)</small></div><button class="btn alt sm" style="margin-top:12px" onclick="go('wallet')">View wallet</button></div>
- <div class="grid"><div class="qa" onclick="go('tasks')"><b>⚡</b>Earn</div><div class="qa" onclick="go('tasks')"><b>🎯</b>Tasks</div><div class="qa" onclick="go('rewards')"><b>🎁</b>Rewards</div><div class="qa" onclick="open('wd')"><b>💸</b>Withdraw</div></div>
+ <div class="grid"><div class="qa" onclick="go('tasks')"><b>⚡</b>Earn</div><div class="qa" onclick="go('tasks')"><b>🎯</b>Tasks</div><div class="qa" onclick="go('rewards')"><b>🎁</b>Rewards</div><div class="qa" onclick="openSub('wd')"><b>💸</b>Withdraw</div></div>
  <div class="card row"><div><b>Daily check-in</b><br><small>Claim 50 coins once a day</small></div><button class="btn alt sm" ${dn?'disabled':''} onclick="doTask(1)">${dn?'Claimed':'Claim 50'}</button></div>
  <h2>Available tasks</h2>${TASKS.slice(1,4).map(taskCard).join('')}`}
 function vTasks(){const l=TASKS.filter(t=>cat==='All'||t.cat===cat);
@@ -144,7 +144,7 @@ function vTasks(){const l=TASKS.filter(t=>cat==='All'||t.cat===cat);
 function vWallet(){const u=me(),w=u.wd.filter(x=>x.st==='Pending').reduce((a,b)=>a+b.amt*RATE,0),wd=u.wd.reduce((a,b)=>a+(b.st==='Rejected'?0:b.amt*RATE),0);
  return `<h1>Wallet</h1><p class="mut" style="margin-bottom:10px">${RATE} coins = ₹1 is a configurable demo value until a real rewards system is connected.</p>
  <div class="g2"><div class="card"><small>Current coins</small><h1>${u.coins}</h1></div><div class="card"><small>Total earned</small><h1>${u.earned}</h1></div><div class="card"><small>Total withdrawn</small><h1>${wd}</h1></div><div class="card"><small>Pending rewards</small><h1>${w}</h1></div></div>
- <button class="btn" onclick="open('wd')">Withdraw rewards</button><h2 style="margin-top:16px">Transaction history</h2><div class="card">${u.tx.length?u.tx.map(txRow).join(''):'<span class="mut">No transactions yet.</span>'}</div>`}
+ <button class="btn" onclick="openSub('wd')">Withdraw rewards</button><h2 style="margin-top:16px">Transaction history</h2><div class="card">${u.tx.length?u.tx.map(txRow).join(''):'<span class="mut">No transactions yet.</span>'}</div>`}
 function vWd(){const u=me();
  return `<button class="link" onclick="sub=null;render()">← Back</button><h1>Withdraw rewards</h1><div class="demo" style="border-radius:8px;margin:8px 0">DEMO MODE: no money is transferred</div>
  ${lastWd&&u.wd.find(w=>w.id===lastWd)?`<div class="card" style="border-color:var(--ok)"><b>✅ Request submitted</b><br>Status: <b class="st-Pending">Pending</b> · ₹${u.wd.find(w=>w.id===lastWd).amt}<br><small>Demo mode: no money is sent.</small></div>`:''}<div class="card"><small>Available balance: <b>${u.coins} coins (${rs(u.coins)})</b> · Minimum: ₹${MIN_RS}</small><br><br>
@@ -157,7 +157,7 @@ function vRewards(){const u=me();
  return `<h1>Rewards</h1><p class="mut" style="margin-bottom:10px">Redemption is simulated in demo mode.</p><div class="g2">${REWARDS.map(x=>`<div class="card"><h1>₹${x.r}</h1><small>${x.c.toLocaleString()} coins</small><br><br><button class="btn sm ${u.coins<x.c?'ghost':''}" onclick="redeem(${x.r})">${u.coins<x.c?'Not enough coins':'Redeem'}</button></div>`).join('')}</div>`}
 function vProfile(){const u=me(),m=(i,t,f)=>`<div class="card row" style="cursor:pointer;margin-bottom:8px" onclick="${f}"><span>${i} ${t}</span><span>›</span></div>`;
  return `<div class="card" style="text-align:center"><div class="av" style="margin:0 auto 8px;width:64px;height:64px;font-size:28px">${esc(u.name[0].toUpperCase())}</div><h2>${esc(u.name)}</h2><small>${esc(u.email)}<br>+91 ${esc(u.phone)}<br>User ID: ${u.id}</small></div>
- ${m('✏️','Edit profile','editName()')}${m('💰','Wallet',"go('wallet')")}${m('🧾','Transaction history',"open('tx')")}${m('🔔','Notifications',"open('notes')")}${m('❓','Help &amp; support',"open('help')")}${m('📄','Terms, privacy &amp; reward policy',"open('legal')")}${m('🗑️','Reset demo data','resetDemo()')}${m('🚪','Logout','logout()')}`}
+ ${m('✏️','Edit profile','editName()')}${m('💰','Wallet',"go('wallet')")}${m('🧾','Transaction history',"openSub('tx')")}${m('🔔','Notifications',"openSub('notes')")}${m('❓','Help &amp; support',"openSub('help')")}${m('📄','Terms, privacy &amp; reward policy',"openSub('legal')")}${m('🗑️','Reset demo data','resetDemo()')}${m('🚪','Logout','logout()')}`}
 function vNotes(){const u=me();return back()+`<h1>Notifications</h1>${u.notes.length?u.notes.map(n=>`<div class="card">${esc(n.m)}<br><small>${new Date(n.at).toLocaleString()}</small></div>`).join(''):'<div class="card mut">No notifications yet.</div>'}`}
 const back=()=>`<button class="link" onclick="sub=null;render()">← Back</button>`;
 function vTx(){return back()+`<h1>Transaction history</h1><div class="card">${me().tx.length?me().tx.map(txRow).join(''):'<span class="mut">No transactions yet.</span>'}</div>`}
