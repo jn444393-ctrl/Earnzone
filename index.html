@@ -168,7 +168,7 @@ function render(){const R=$('root');
   `<label>Full name</label><input id="rn"><label>Mobile number</label><input id="rp" inputmode="numeric" maxlength="10"><label>Email</label><input id="re" type="email"><label>Password (8+ characters)</label><input id="rw" type="password"><label>Confirm password</label><input id="rc" type="password"><div class="err" id="err"></div><button class="btn" onclick="doReg()">Create account</button><button class="link" onclick="authv='login';render()">I already have an account</button>`)+`</div></main>`;return}
  const m={home:vHome,tasks:vTasks,wallet:vWallet,rewards:vRewards,profile:vProfile},s={wd:vWd,notes:vNotes,tx:vTx,help:vHelp,legal:vLegal};
  const nav=[['home','🏠','Home'],['tasks','🎯','Tasks'],['wallet','💰','Wallet'],['rewards','🎁','Rewards'],['profile','👤','Profile']];
- R.innerHTML=`<div class="demo">DEMO MODE · no real money</div><main>${(sub?s[sub]:m[tab])()}</main><nav>${nav.map(n=>`<button class="${n[0]===tab&&!sub?'on':''}" onclick="go('${n[0]}')"><b>${n[1]}</b>${n[2]}</button>`).join('')}</nav>`;
+ R.innerHTML=`<main>${(sub?s[sub]:m[tab])()}</main><nav>${nav.map(n=>`<button class="${n[0]===tab&&!sub?'on':''}" onclick="go('${n[0]}')"><b>${n[1]}</b>${n[2]}</button>`).join('')}</nav>`;
  R.style.cssText='display:flex;flex-direction:column;height:100%';
 }
 $('root').style.height='100%';
